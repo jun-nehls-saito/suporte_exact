@@ -1,6 +1,6 @@
 // A base das suas URLs
 const BASE_URL_VIP = "https://calls-vip.s3.amazonaws.com/";
-const BASE_URL_GOSAT = "https://calls-gosat.com/";
+const BASE_URL_GOSAT = "https://calls-gosat.s3.amazonaws.com/";
 
 // Variável global para rastrear o último botão de cópia clicado
 let lastCopiedButton = null; 
@@ -395,4 +395,5 @@ clearButton.addEventListener('click', function() {
     form.reset(); 
     setTodayDate(); 
     saveFormState(); 
+
 });
