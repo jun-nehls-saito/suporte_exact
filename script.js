@@ -12,7 +12,7 @@ let sessionHistory = [];
 const mainContainer = document.getElementById('mainContainer');
 const senhaCorreta = "jun"; // Altere para a senha que você quiser!
 
-// NOVO: Verifica se a senha já foi inserida nesta sessão
+// Verifica se a senha já foi inserida nesta sessão
 if (sessionStorage.getItem('acessoLiberado') === 'true') {
     mainContainer.classList.remove('hidden');
 } else {
@@ -20,16 +20,13 @@ if (sessionStorage.getItem('acessoLiberado') === 'true') {
 
     while (senhaUsuario !== senhaCorreta) {
         if (senhaUsuario === null) { // Usuário clicou em 'cancelar'
-            // AQUI ESTÁ A MUDANÇA: mensagem para 'cancelar'
             alert("Ahhhh que peninha, não deu pra entrar... Bye bye!");
             break; // Sai do loop para não pedir a senha infinitamente
         }
-        // AQUI ESTÁ A MUDANÇA: mensagem para senha errada
         senhaUsuario = prompt("OW, vc errou, se pah nem era pra vc estar aqui... VAZA!");
     }
 
     if (senhaUsuario === senhaCorreta) {
-        // NOVO: Armazena a informação na sessão do navegador
         sessionStorage.setItem('acessoLiberado', 'true');
         mainContainer.classList.remove('hidden');
     }
@@ -54,7 +51,6 @@ const platformInput = document.getElementById('platform');
 const STORAGE_KEY_FORM = 'urlFormState';
 const STORAGE_KEY_HISTORY = 'urlHistoryState';
 
-
 // NOVO: LÓGICA PARA PERMITIR APENAS NÚMEROS NO CAMPO 'ID do Cliente'
 clientIdInput.addEventListener('keypress', function(event) {
     // Permite apenas caracteres numéricos (0-9)
@@ -69,7 +65,6 @@ clientIdInput.addEventListener('input', function() {
         this.value = this.value.slice(0, 5);
     }
 });
-
 
 // --- LÓGICA DE PERSISTÊNCIA ---
 
@@ -149,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // --- LÓGICA DOS BOTÕES DE LIMPEZA ---
 clearHistoryButton.addEventListener('click', function() {
-    // NOVA REGRA: Não exibe alerta se não houver URLs geradas
+    // Não exibe alerta se não houver URLs geradas
     const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
     if (!savedHistory || JSON.parse(savedHistory).length === 0) {
         return; 
@@ -166,7 +161,6 @@ clearHistoryButton.addEventListener('click', function() {
 
 // --- LÓGICA DO NOVO BOTÃO: LIMPAR A PORRA TODA ---
 clearAllButton.addEventListener('click', function() {
-    // NOVA REGRA: Não exibe alerta se o formulário estiver vazio
     if (isFormEmpty()) {
         return;
     }
@@ -182,7 +176,6 @@ clearAllButton.addEventListener('click', function() {
         setTodayDate(); 
         saveFormState(); 
         
-        // NOVO: Remove a flag de acesso liberado da sessão
         sessionStorage.removeItem('acessoLiberado');
     }
 });
@@ -190,7 +183,6 @@ clearAllButton.addEventListener('click', function() {
 
 // --- FUNÇÕES DE UTENSÍLIOS E VALIDAÇÃO ---
 
-// NOVA FUNÇÃO: Checa se o formulário está vazio (ignora a data padrão)
 function isFormEmpty() {
     const defaultDate = dataInput.value;
     const clientIdEmpty = clientIdInput.value.trim() === '';
@@ -237,7 +229,6 @@ dataInput.addEventListener('input', function() {
 form.addEventListener('submit', function(event) {
     event.preventDefault(); 
     
-    // Validação de campos vazios
     if (clientIdInput.value.trim() === '' || chaveInput.value.trim() === '' || dataInput.value.trim() === '' || timeInput.value.trim() === '' || duracaoInput.value.trim() === '' || platformInput.value.trim() === '') {
         alert('Ta achando que eu sou o Akinator e tenho bola de cristal? Preenche todos os campos ae pow!');
         return; 
@@ -288,19 +279,11 @@ form.addEventListener('submit', function(event) {
     const ano = partesData[0];
     const mes = partesData[1];
     const dia = partesData[2];
+
+    const caminhoData = `${ano}/${mes}/${dia}`;
     
-    const partesHora = hora.split(':');
-    const horaFormatada = partesHora[0];
-    const minutoFormatado = partesHora[1];
-
-    const caminhoData = `${ano}/${mes}/${dia}`; 
-    const prefixoChave = `${ano}${mes}${dia}_${horaFormatada}${minutoFormatado}00`; 
-
-    const indicePrimeiroUnderline = chaveCompleta.indexOf('_');
-    const indiceSegundoUnderline = chaveCompleta.indexOf('_', indicePrimeiroUnderline + 1);
-
-    const sufixoChave = indiceSegundoUnderline > -1 ? chaveCompleta.substring(indiceSegundoUnderline) : '';
-    const nomeArquivo = `${prefixoChave}${sufixoChave}`;
+    // AQUI ESTÁ A CORREÇÃO FINAL: Usamos a chave completa como o nome do arquivo, sem prefixos.
+    const nomeArquivo = chaveCompleta;
 
     const finalUrl = `${baseURL}${caminhoData}/${clientId}/${nomeArquivo}.wav`;
 
@@ -359,7 +342,7 @@ function addUrlBlockToDOM(url, clientId, data, hora) {
         if (lastCopiedButton && lastCopiedButton !== this) {
             lastCopiedButton.textContent = 'Copiar';
             lastCopiedButton.style.backgroundColor = 'var(--color-copy-button)';
-            lastCopiedButton.style.color = 'var(--color-primary)';
+            lastCopiedButton.style.color = 'white'; 
         }
 
         navigator.clipboard.writeText(url)
@@ -388,12 +371,10 @@ function addUrlBlockToDOM(url, clientId, data, hora) {
 
 // --- FUNÇÃO DE LIMPEZA GERAL ---
 clearButton.addEventListener('click', function() {
-    // NOVA REGRA: não faz nada se o formulário já estiver vazio
     if (isFormEmpty()) {
         return; 
     }
     form.reset(); 
     setTodayDate(); 
     saveFormState(); 
-
 });
