@@ -31,8 +31,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-    /* AQUI ESTÁ A MUDANÇA: de 600px para 800px */
-    max-width: 800px;
+    max-width: 900px;
 }
 
 h1 {
