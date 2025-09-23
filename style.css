@@ -17,9 +17,9 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--color-background);
-    color: var(--color-text);
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
     display: flex;
     justify-content: center;
     padding: 20px;
@@ -28,14 +28,15 @@ body {
 .container {
     background: #fff;
     padding: 30px;
-    border-radius: var(--border-radius-base);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 600px;
+    /* AQUI ESTÁ A MUDANÇA: de 600px para 800px */
+    max-width: 800px;
 }
 
 h1 {
-    color: var(--color-primary);
+    color: #007bff;
     text-align: center;
 }
 
