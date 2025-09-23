@@ -14,48 +14,65 @@
             <p>UHUL! URL Criada com Sucesso!</p>
         </div>
     </div>
-    <div class="container hidden" id="mainContainer">
-        <h1>Gerador de URL de Chamadas</h1>
-        <p>Preencha os campos abaixo para gerar a URL formatada.</p>
-        
-        <form id="urlForm" novalidate>
-            <label for="clientId">ID do Cliente</label>
-            <input type="number" id="clientId" name="clientId" required maxlength="5" pattern="\d{5}" title="O ID do Cliente deve ter exatamente 5 dígitos numéricos.">
+    
+    <div id="copyGif" class="gif-overlay hidden">
+        <div class="gif-content">
+            <img src="https://i.giphy.com/y029AnJtAQhO5Jm9Ed.webp" alt="Copiado!">
+        </div>
+    </div>
 
-            <label for="chave">Chave</label>
-            <input type="text" id="chave" name="chave" required>
+    <div id="mainContainer">
+        <div class="container">
+            <h1>Gerador de URL de Chamadas</h1>
+            <p>Preencha os campos abaixo para gerar a URL formatada.</p>
             
-            <label for="data">Data da Ligação</label>
-            <input type="date" id="data" name="data" required>
+            <form id="urlForm"> <label for="clientId">ID do Cliente</label>
+                <input type="text" id="clientId" name="clientId" required maxlength="5" pattern="\d{5}" title="O ID do Cliente deve ter exatamente 5 dígitos numéricos.">
 
-            <label for="hora">Hora da Ligação</label>
-            <input type="time" id="hora" name="hora" required>
+                <label for="leadId">LeadID</label>
+                <input type="text" id="leadId" name="leadId" required pattern="\d*" title="O LeadID deve conter apenas números.">
 
-            <label for="duracao">Duração (segundos)</label>
-            <input type="number" id="duracao" name="duracao" required min="1">
-            
-            <label for="platform">Provedor</label>
-            <select id="platform" name="platform" required>
-                <option value="" disabled selected>Qual o provedor?</option>
-                <option value="vip">VIP</option>
-                <option value="gosat">Gosat</option>
-            </select>
-            
-            <div class="form-actions">
-                <button type="submit">Gerar URL</button>
-                <button type="button" id="clearButton" class="secondary-button">Limpar Campos</button>
-            </div>
-        </form>
+                <label for="origem">Telefone de Origem</label>
+                <input type="text" id="origem" name="origem" required pattern="\d*" title="O telefone de origem deve conter apenas números.">
+                
+                <label for="destino">Telefone de Destino</label>
+                <input type="text" id="destino" name="destino" required pattern="\d*" title="O telefone de destino deve conter apenas números.">
+                
+                <label for="chave">Chave</label>
+                <input type="text" id="chave" name="chave" required>
+                
+                <label for="data">Data da Ligação</label>
+                <input type="date" id="data" name="data" required>
 
-        <div class="resultado">
-            <h2>URLs Geradas:</h2>
-            <div class="form-actions">
-                <button type="button" id="clearHistoryButton" class="clear-urls-button">Limpar URLs</button>
-                <button type="button" id="clearAllButton" class="clear-all-button">Limpar a porra toda</button>
-            </div>
+                <label for="hora">Hora da Ligação</label>
+                <input type="time" id="hora" name="hora" required>
 
-            <div id="historyOutput">
-                <p>Nenhuma URL gerada ainda...</p>
+                <label for="duracao">Duração (segundos)</label>
+                <input type="number" id="duracao" name="duracao" required min="1">
+                
+                <label for="platform">Provedor</label>
+                <select id="platform" name="platform" required>
+                    <option value="" disabled selected>Qual o provedor?</option>
+                    <option value="vip">VIP</option>
+                    <option value="gosat">Gosat</option>
+                </select>
+                
+                <div class="form-actions">
+                    <button type="submit">Gerar URL</button>
+                    <button type="button" id="clearButton" class="secondary-button">Limpar Campos</button>
+                </div>
+            </form>
+
+            <div class="resultado">
+                <h2>URLs Geradas:</h2>
+                <div class="form-actions">
+                    <button type="button" id="clearHistoryButton" class="clear-urls-button">Limpar URLs</button>
+                    <button type="button" id="clearAllButton" class="clear-all-button">Limpar a porra toda</button>
+                </div>
+
+                <div id="historyOutput">
+                    <p>Nenhuma URL gerada ainda.</p>
+                </div>
             </div>
         </div>
     </div>

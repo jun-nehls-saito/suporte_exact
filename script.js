@@ -1,432 +1,276 @@
-// A base das suas URLs
-const BASE_URL_VIP = "https://calls-vip.s3.amazonaws.com/";
-const BASE_URL_GOSAT = "https://calls-gosat.s3.amazonaws.com/";
-
-// Variável global para rastrear o último botão de cópia clicado
-let lastCopiedButton = null; 
-
-// Variável para armazenar as URLs geradas na sessão (limpa ao recarregar a página)
-let sessionHistory = [];
-
-// AQUI COMEÇA A LÓGICA DE VALIDAÇÃO POR SENHA
-const mainContainer = document.getElementById('mainContainer');
-const senhaCorreta = "jun"; // Altere para a senha que você quiser!
-
-// Verifica se a senha já foi inserida nesta sessão
-if (sessionStorage.getItem('acessoLiberado') === 'true') {
-    mainContainer.classList.remove('hidden');
-} else {
-    let senhaUsuario = prompt("Por favor, digite a senha para acessar:");
-
-    while (senhaUsuario !== senhaCorreta) {
-        if (senhaUsuario === null) { // Usuário clicou em 'cancelar'
-            alert("Ahhhh que peninha, não deu pra entrar... Bye bye!");
-            break; // Sai do loop para não pedir a senha infinitamente
-        }
-        senhaUsuario = prompt("OW, vc errou, se pah nem era pra vc estar aqui... VAZA!");
-    }
-
-    if (senhaUsuario === senhaCorreta) {
-        sessionStorage.setItem('acessoLiberado', 'true');
-        mainContainer.classList.remove('hidden');
-    }
-}
-
-// --- A PARTIR DAQUI, O RESTO DO SEU CÓDIGO PERMANECE O MESMO ---
-
-// Pega referências para os elementos do HTML
-const form = document.getElementById('urlForm');
-const historyOutput = document.getElementById('historyOutput');
-const clearButton = document.getElementById('clearButton');
-const clearHistoryButton = document.getElementById('clearHistoryButton'); 
-const clearAllButton = document.getElementById('clearAllButton'); 
-const dataInput = document.getElementById('data');
-const timeInput = document.getElementById('hora'); 
-const clientIdInput = document.getElementById('clientId');
-const chaveInput = document.getElementById('chave');
-const duracaoInput = document.getElementById('duracao');
-const successGif = document.getElementById('successGif'); 
-const platformInput = document.getElementById('platform');
-
-const STORAGE_KEY_FORM = 'urlFormState';
-const STORAGE_KEY_HISTORY = 'urlHistoryState';
-
-// NOVO: LÓGICA PARA PERMITIR APENAS NÚMEROS NO CAMPO 'ID do Cliente'
-clientIdInput.addEventListener('keypress', function(event) {
-    // Permite apenas caracteres numéricos (0-9)
-    if (event.key < '0' || event.key > '9') {
-        event.preventDefault();
-    }
-});
-
-// NOVO: LÓGICA PARA LIMITAR O CAMPO 'ID do Cliente' a 5 dígitos
-clientIdInput.addEventListener('input', function() {
-    if (this.value.length > 5) {
-        this.value = this.value.slice(0, 5);
-    }
-});
-
-// --- LÓGICA DE PERSISTÊNCIA ---
-
-// 1. FUNÇÃO PARA SALVAR O ESTADO DO FORMULÁRIO
-function saveFormState() {
-    const formState = {
-        clientId: clientIdInput.value,
-        chave: chaveInput.value,
-        data: dataInput.value,
-        hora: timeInput.value,
-        duracao: duracaoInput.value,
-        platform: platformInput.value
-    };
-    localStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(formState));
-}
-
-// 2. FUNÇÃO PARA CARREGAR O ESTADO DO FORMULÁRIO
-function loadFormState() {
-    const savedState = localStorage.getItem(STORAGE_KEY_FORM);
-    if (savedState) {
-        const formState = JSON.parse(savedState);
-        clientIdInput.value = formState.clientId || '';
-        chaveInput.value = formState.chave || '';
-        dataInput.value = formState.data || '';
-        timeInput.value = formState.hora || '';
-        duracaoInput.value = formState.duracao || '';
-        platformInput.value = formState.platform || '';
-    }
-}
-
-// 3. FUNÇÃO PARA CARREGAR E EXIBIR O HISTÓRICO
-function loadHistory() {
-    const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-    if (savedHistory) {
-        historyOutput.innerHTML = ''; // Limpa a área para evitar duplicação
-        const historyArray = JSON.parse(savedHistory);
-        
-        historyArray.forEach(item => {
-             addUrlBlockToDOM(item.url, item.clientId, item.data, item.hora, item.duracao, item.chave, item.platform);
-        });
-    } else {
-        historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
-    }
-}
-
-// 4. FUNÇÃO PARA ADICIONAR UM ITEM AO HISTÓRICO SALVO
-function saveHistoryItem(url, clientId, data, hora, duracao, chave, platform) {
-    const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-    let historyArray = savedHistory ? JSON.parse(savedHistory) : [];
-
-    historyArray.unshift({
-        clientId: clientId,
-        url: url,
-        data: data, 
-        hora: hora,
-        duracao: duracao,
-        chave: chave,
-        platform: platform,
-        timestamp: new Date().getTime() 
-    });
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('urlForm');
+    const historyOutput = document.getElementById('historyOutput');
+    const clearButton = document.getElementById('clearButton');
+    const clearHistoryButton = document.getElementById('clearHistoryButton');
+    const clearAllButton = document.getElementById('clearAllButton');
+    const successGif = document.getElementById('successGif');
+    const copyGif = document.getElementById('copyGif');
     
-    // Limitar o histórico a 20 itens
-    if (historyArray.length > 20) {
-        historyArray = historyArray.slice(0, 20);
-    }
-    
-    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyArray));
-}
-
-// Ouve as mudanças nos campos para salvar o estado a cada digitação
-form.addEventListener('input', saveFormState);
-
-// Chama as funções para carregar o estado e o histórico ao carregar a página
-document.addEventListener('DOMContentLoaded', function() {
-    loadFormState();
-    loadHistory();
-    setTodayDate(); 
-});
-
-
-// --- LÓGICA DOS BOTÕES DE LIMPEZA ---
-clearHistoryButton.addEventListener('click', function() {
-    // Não exibe alerta se não houver URLs geradas
-    const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-    if (!savedHistory || JSON.parse(savedHistory).length === 0) {
-        return; 
-    }
-    
-    alert("ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.");
-
-    if (confirm("Você tem certeza?")) {
-        historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
-        localStorage.removeItem(STORAGE_KEY_HISTORY);
-        lastCopiedButton = null; 
-    }
-});
-
-// --- LÓGICA DO NOVO BOTÃO: LIMPAR A PORRA TODA ---
-clearAllButton.addEventListener('click', function() {
-    if (isFormEmpty()) {
-        return;
-    }
-    
-    alert("ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.");
-
-    if (confirm("Você tem certeza disso????????????")) {
-        localStorage.removeItem(STORAGE_KEY_HISTORY); 
-        historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
-        lastCopiedButton = null; 
-        sessionHistory = []; 
-        form.reset(); 
-        setTodayDate(); 
-        saveFormState(); 
-        
-        sessionStorage.removeItem('acessoLiberado');
-    }
-});
-
-
-// --- FUNÇÕES DE UTENSÍLIOS E VALIDAÇÃO ---
-
-function isFormEmpty() {
-    const defaultDate = dataInput.value;
-    const clientIdEmpty = clientIdInput.value.trim() === '';
-    const chaveEmpty = chaveInput.value.trim() === '';
-    const timeEmpty = timeInput.value.trim() === '';
-    const duracaoEmpty = duracaoInput.value.trim() === '';
-    const platformEmpty = platformInput.value.trim() === '';
-
-    return clientIdEmpty && chaveEmpty && timeEmpty && duracaoEmpty && platformEmpty;
-}
-
-// FUNÇÃO PARA DEFINIR A DATA ATUAL (Preenchimento Padrão)
-function setTodayDate() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayDateFormatted = `${year}-${month}-${day}`;
-    
-    if (!dataInput.value) {
-        dataInput.value = todayDateFormatted;
-    }
-}
-
-// FUNÇÃO DE VALIDAÇÃO (Garantir 5 dígitos numéricos)
-function validateClientId(id) {
-    const regex = /^\d{5}$/;
-    if (!regex.test(id)) {
-        alert('ERRO: O ID do Cliente deve ter exatamente 5 dígitos.');
-        return false;
-    }
-    return true;
-}
-
-// LÓGICA DE BLOQUEIO DE ENTRADA MANUAL DE DATA
-dataInput.addEventListener('input', function() {
-    if (this.value.length > 10) {
-         this.value = this.value.substring(0, 10);
-    }
-});
-
-
-// --- FUNÇÃO PRINCIPAL DE GERAÇÃO DA URL (LÓGICA DO GIF) ---
-form.addEventListener('submit', function(event) {
-    event.preventDefault(); 
-    
-    if (clientIdInput.value.trim() === '' || chaveInput.value.trim() === '' || dataInput.value.trim() === '' || timeInput.value.trim() === '' || duracaoInput.value.trim() === '' || platformInput.value.trim() === '') {
-        alert('Ta achando que eu sou o Akinator e tenho bola de cristal? Preenche todos os campos ae pow!');
-        return; 
-    }
-
-    const clientId = clientIdInput.value; 
-    const chaveCompleta = chaveInput.value;
-    const data = dataInput.value; 
-    const hora = timeInput.value; 
-    const duracao = duracaoInput.value;
-    const platform = platformInput.value;
-
-    const newEntry = `${clientId}-${chaveCompleta}-${data}-${hora}`;
-    const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-    const historyArray = savedHistory ? JSON.parse(savedHistory) : [];
-    
-    const savedEntries = historyArray.map(item => {
-        const itemDate = item.data;
-        const itemHour = item.hora;
-        return `${item.clientId}-${chaveCompleta}-${itemDate}-${itemHour}`;
-    });
-
-    if (sessionHistory.includes(newEntry) || savedEntries.includes(newEntry)) {
-        alert("Mas bah, oooo meo, presta atenção que tu já gerou essa url, barbaridade tchê!");
-        return;
-    }
-    
-    if (!data || data.length < 8) { 
-        alert('Ta achando que eu sou o Akinator e tenho bola de cristal? Preenche todos os campos ae pow!');
-        return; 
-    }
-    if (!hora || hora.length < 5) { 
-        alert('Ta achando que eu sou o Akinator e tenho bola de cristal? Preenche todos os campos ae pow!');
-        return; 
-    }
-    if (!validateClientId(clientId)) {
-        return; 
-    }
-    
-    let baseURL;
-    if (platform === 'vip') {
-        baseURL = BASE_URL_VIP;
-    } else if (platform === 'gosat') {
-        baseURL = BASE_URL_GOSAT;
-    }
-
-    const partesData = data.split('-'); 
-    const ano = partesData[0];
-    const mes = partesData[1];
-    const dia = partesData[2];
-
-    const caminhoData = `${ano}/${mes}/${dia}`;
-    
-    const nomeArquivo = chaveCompleta;
-
-    const finalUrl = `${baseURL}${caminhoData}/${clientId}/${nomeArquivo}.wav`;
-
-    sessionHistory.push(newEntry);
-    
-    saveHistoryItem(finalUrl, clientId, data, hora, duracao, chaveCompleta, platform); 
-    addUrlBlockToDOM(finalUrl, clientId, data, hora, duracao, chaveCompleta, platform);
-
-    successGif.classList.remove('hidden'); 
-    
-    setTimeout(() => {
-        successGif.classList.add('hidden');
-    }, 1000);
-});
-
-
-// --- FUNÇÃO DE CRIAÇÃO DO BLOCO DE URL ---
-function addUrlBlockToDOM(url, clientId, data, hora, duracao, chave, platform) {
-    
-    Array.from(historyOutput.children).forEach(child => {
-        if (child.tagName === 'P' && child.textContent.trim() === 'Nenhuma URL gerada ainda.') {
-            historyOutput.removeChild(child);
-        }
-    });
-
-    const block = document.createElement('div');
-    block.className = 'url-block'; 
-
-    const metadataDiv = document.createElement('div');
-    metadataDiv.className = 'metadata-block';
-    
-    const idSpan = document.createElement('span');
-    idSpan.className = 'id-label';
-    idSpan.textContent = clientId; 
-
-    const dateTimeSpan = document.createElement('span');
-    dateTimeSpan.className = 'datetime-label';
-    const partesData = data.split('-');
-    const diaMes = `${partesData[2]}/${partesData[1]}`;
-    const provedor = url.includes(BASE_URL_VIP) ? 'VIP' : 'Gosat';
-    dateTimeSpan.textContent = `(${diaMes} - ${hora} - ${provedor})`;
-    
-    metadataDiv.appendChild(idSpan);
-    metadataDiv.appendChild(dateTimeSpan);
-    
-    const urlP = document.createElement('p');
-    urlP.className = 'url-copia';
-    urlP.textContent = url;
-
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.className = 'url-buttons';
-    
-    const urlBtn = document.createElement('button');
-    urlBtn.textContent = 'Copiar URL';
-    urlBtn.className = 'copy-btn';
-    
-    const jsonBtn = document.createElement('button');
-    jsonBtn.textContent = 'Copiar JSON';
-    // O BUG ESTAVA AQUI: ambos os botões agora usam a mesma classe.
-    jsonBtn.className = 'copy-btn';
-
-    // FUNÇÃO REUTILIZÁVEL PARA RESETAR O BOTÃO ANTERIOR
-    function resetLastButton() {
-        if (lastCopiedButton) {
-            // Verifica o texto atual e reseta para o valor original
-            if (lastCopiedButton.textContent === 'URL Copiada!') {
-                lastCopiedButton.textContent = 'Copiar URL';
-            } else if (lastCopiedButton.textContent === 'JSON Copiado!') {
-                lastCopiedButton.textContent = 'Copiar JSON';
-            }
-            lastCopiedButton.style.backgroundColor = 'var(--color-copy-button)';
-            lastCopiedButton.style.color = 'white'; 
-        }
-    }
-
-    urlBtn.addEventListener('click', function() {
-        resetLastButton();
-        navigator.clipboard.writeText(url)
-            .then(() => {
-                this.textContent = 'URL Copiada!';
-                this.style.backgroundColor = 'var(--color-primary)';
-                this.style.color = 'white';
-                lastCopiedButton = this;
-            })
-            .catch(err => {
-                console.error('Erro ao copiar a URL: ', err);
-                alert('Não foi possível copiar.');
-                this.textContent = 'Erro ao copiar!';
-                this.style.backgroundColor = 'var(--color-copy-button)';
-                this.style.color = 'var(--color-primary)';
-            });
-    });
-
-    jsonBtn.addEventListener('click', function() {
-        resetLastButton();
-        
-        const jsonObject = {
-            url: url,
-            clientId: clientId,
-            data: data,
-            hora: hora,
-            duracao: duracao,
-            chave: chave,
-            provedor: platform
+    // Funções para salvar e carregar o estado do formulário
+    function saveFormState() {
+        const formData = {
+            clientId: document.getElementById('clientId').value,
+            leadId: document.getElementById('leadId').value,
+            origem: document.getElementById('origem').value,
+            destino: document.getElementById('destino').value,
+            chave: document.getElementById('chave').value,
+            hora: document.getElementById('hora').value,
+            duracao: document.getElementById('duracao').value,
+            platform: document.getElementById('platform').value,
         };
+        localStorage.setItem('formState', JSON.stringify(formData));
+    }
 
-        const jsonString = JSON.stringify(jsonObject, null, 2);
+    function loadFormState() {
+        const savedState = localStorage.getItem('formState');
+        if (savedState) {
+            const formData = JSON.parse(savedState);
+            document.getElementById('clientId').value = formData.clientId;
+            document.getElementById('leadId').value = formData.leadId;
+            document.getElementById('origem').value = formData.origem;
+            document.getElementById('destino').value = formData.destino;
+            document.getElementById('chave').value = formData.chave;
+            document.getElementById('hora').value = formData.hora;
+            document.getElementById('duracao').value = formData.duracao;
+            document.getElementById('platform').value = formData.platform;
+        }
+    }
 
-        navigator.clipboard.writeText(jsonString)
-            .then(() => {
-                this.textContent = 'JSON Copiado!';
-                this.style.backgroundColor = 'var(--color-primary)';
-                this.style.color = 'white';
-                lastCopiedButton = this;
-            })
-            .catch(err => {
-                console.error('Erro ao copiar o JSON: ', err);
-                alert('Não foi possível copiar o JSON.');
-                this.textContent = 'Erro ao copiar!';
-                this.style.backgroundColor = 'var(--color-copy-button)';
-                this.style.color = 'var(--color-primary)';
-            });
+    // Carregar o estado do formulário ao iniciar
+    loadFormState();
+    
+    // Esconder o parágrafo "Nenhuma URL gerada ainda." se houver histórico no localStorage
+    if (localStorage.getItem('chamadas')) {
+        historyOutput.querySelector('p')?.classList.add('hidden');
+    }
+    
+    // Adicionar listener para salvar o estado do formulário a cada alteração
+    form.addEventListener('input', saveFormState);
+
+    // Função para preencher a data com o dia de hoje
+    function setDateToday() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('data').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Função para validar a entrada e remover caracteres não numéricos e a letra 'e'
+    function validateNumberInput(event) {
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+    }
+    
+    // Aplicar a validação aos campos ID do Cliente, LeadID, Origem, Destino e Duração
+    document.getElementById('clientId').addEventListener('input', validateNumberInput);
+    document.getElementById('leadId').addEventListener('input', validateNumberInput);
+    document.getElementById('origem').addEventListener('input', validateNumberInput);
+    document.getElementById('destino').addEventListener('input', validateNumberInput);
+    document.getElementById('duracao').addEventListener('input', validateNumberInput);
+
+    // Chamar a função para preencher a data ao carregar a página
+    setDateToday();
+
+    form.addEventListener('submit', (event) => {
+        // Pega todos os valores do formulário
+        const clientId = document.getElementById('clientId').value;
+        const leadId = document.getElementById('leadId').value;
+        const origem = document.getElementById('origem').value;
+        const destino = document.getElementById('destino').value;
+        const chave = document.getElementById('chave').value;
+        const data = document.getElementById('data').value;
+        const hora = document.getElementById('hora').value;
+        const duracao = document.getElementById('duracao').value;
+        const platform = document.getElementById('platform').value;
+
+        // Formata a data para o formato YYYY/MM/DD
+        const [ano, mes, dia] = data.split('-');
+        const dataFormatada = `${ano}/${mes}/${dia}`;
+        
+        // Gerar a URL para verificação
+        const baseUrl = `https://calls-${platform}.s3.amazonaws.com`;
+        const urlFinal = `${baseUrl}/${dataFormatada}/${clientId}/${chave}.wav`;
+        
+        // CORRIGIDO: Verifica se a URL já existe no histórico baseada APENAS na chave
+        let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
+        const isDuplicate = chamadas.some(chamada => chamada.chave === chave);
+
+        if (isDuplicate) {
+            event.preventDefault(); // Impede o envio do formulário
+            alert('Aaaah, tchê! Essa URL aí tu já gerou! Não vai de novo que nem gaúcho repetindo churrasco!');
+            return; // Impede a execução do resto do código
+        }
+
+        // Se a validação do HTML5 passar e a URL não for duplicada,
+        // o resto da lógica de submissão do formulário acontece aqui
+        event.preventDefault();
+        
+        // Exibir GIF de sucesso
+        successGif.classList.remove('hidden');
+
+        // Adicionar um pequeno atraso para a animação do GIF
+        setTimeout(() => {
+            // Criar um objeto com os dados da chamada
+            const chamada = {
+                id: Date.now(), // ID único para o histórico
+                clientId: clientId,
+                leadId: leadId,
+                origem: origem,
+                destino: destino,
+                chave: chave,
+                data: data,
+                hora: hora,
+                duracao: duracao,
+                platform: platform,
+                url: urlFinal,
+                datetime: new Date().toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).replace(',', ' -')
+            };
+            
+            saveToHistory(chamada);
+            displayHistory();
+
+            successGif.classList.add('hidden');
+            
+        }, 1000); // Exibe o GIF por 1 segundo
     });
 
-    buttonsDiv.appendChild(urlBtn);
-    buttonsDiv.appendChild(jsonBtn);
-    
-    block.appendChild(metadataDiv);
-    block.appendChild(urlP);
-    block.appendChild(buttonsDiv);
-    
-    historyOutput.prepend(block);
-}
-
-
-// --- FUNÇÃO DE LIMPEZA GERAL ---
-clearButton.addEventListener('click', function() {
-    if (isFormEmpty()) {
-        return; 
+    // Função para salvar no Local Storage
+    function saveToHistory(chamada) {
+        let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
+        chamadas.unshift(chamada);
+        localStorage.setItem('chamadas', JSON.stringify(chamadas));
     }
-    form.reset(); 
-    setTodayDate(); 
-    saveFormState(); 
+
+    // Função para exibir o histórico
+    function displayHistory() {
+        let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
+        
+        // Remove o parágrafo "Nenhuma URL gerada ainda."
+        historyOutput.querySelector('p')?.classList.add('hidden');
+        historyOutput.innerHTML = '';
+        
+        chamadas.forEach((chamada) => {
+            const urlBlock = document.createElement('div');
+            urlBlock.className = 'url-block';
+            
+            urlBlock.innerHTML = `
+                <div class="metadata-block">
+                    <span class="id-label">${chamada.clientId}</span>
+                    <span class="datetime-label">(${chamada.data} - ${chamada.hora} - ${chamada.platform.toUpperCase()})</span>
+                </div>
+                <div class="url-copia">${chamada.url}</div>
+                <div class="url-buttons">
+                    <button class="copy-btn copy-url" data-url="${chamada.url}">Copiar URL</button>
+                    <button class="copy-btn copy-json" data-id="${chamada.id}">Copiar JSON</button>
+                </div>
+            `;
+            historyOutput.appendChild(urlBlock);
+        });
+    }
+
+    // Lida com os botões de copiar URL e JSON
+    historyOutput.addEventListener('click', (event) => {
+        if (event.target.classList.contains('copy-url')) {
+            const url = event.target.dataset.url;
+            navigator.clipboard.writeText(url)
+                .then(() => {
+                    event.target.textContent = 'URL Copiada!';
+                    
+                    // Exibir GIF de copiado
+                    copyGif.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        event.target.textContent = 'Copiar URL';
+                        copyGif.classList.add('hidden');
+                    }, 1000); // Esconde o GIF após 1 segundo
+                })
+                .catch(err => {
+                    console.error('Erro ao copiar URL:', err);
+                });
+        }
+        
+        if (event.target.classList.contains('copy-json')) {
+            const id = event.target.dataset.id;
+            let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
+            const chamada = chamadas.find(item => item.id == id);
+            
+            if (chamada) {
+                // Formatação da data e hora
+                const dtInicio = new Date(`${chamada.data}T${chamada.hora}`);
+                dtInicio.setSeconds(0); // Garante que os segundos sejam 00
+                
+                // Cálculo da data e hora de fim
+                const dtFim = new Date(dtInicio.getTime() + parseInt(chamada.duracao) * 1000);
+                
+                // Formata o JSON
+                const jsonContent = {
+                    "LeadId": parseInt(chamada.leadId),
+                    "UrlLigacao": chamada.url,
+                    "OrigemTel": chamada.origem,
+                    "DestinoTel": chamada.destino,
+                    "DtInicioChamada": dtInicio.toISOString().replace('T', ' ').substring(0, 19),
+                    "DtFimChamada": dtFim.toISOString().replace('T', ' ').substring(0, 19),
+                    "TempoConversacao": parseInt(chamada.duracao)
+                };
+
+                navigator.clipboard.writeText(JSON.stringify(jsonContent, null, 2))
+                    .then(() => {
+                        event.target.textContent = 'JSON Copiado!';
+
+                        // Exibir GIF de copiado
+                        copyGif.classList.remove('hidden');
+
+                        setTimeout(() => {
+                            event.target.textContent = 'Copiar JSON';
+                            copyGif.classList.add('hidden');
+                        }, 1000); // Esconde o GIF após 1 segundo
+                    })
+                    .catch(err => {
+                        console.error('Erro ao copiar JSON:', err);
+                    });
+            }
+        }
+    });
+
+    // Botão para limpar campos do formulário (sem validação)
+    clearButton.addEventListener('click', () => {
+        form.reset();
+        localStorage.removeItem('formState');
+        setDateToday();
+    });
+
+    // Botão para limpar histórico com dupla verificação
+    clearHistoryButton.addEventListener('click', () => {
+        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
+        if (confirm(confirmMessage)) {
+            if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {
+                localStorage.removeItem('chamadas');
+                historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
+            }
+        }
+    });
+
+    // Botão para limpar tudo com dupla verificação
+    clearAllButton.addEventListener('click', () => {
+        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
+        if (confirm(confirmMessage)) {
+            if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {
+                form.reset();
+                localStorage.removeItem('chamadas');
+                localStorage.removeItem('formState');
+                historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
+                setDateToday();
+            }
+        }
+    });
+    
+    // Carregar histórico ao iniciar
+    displayHistory();
 });

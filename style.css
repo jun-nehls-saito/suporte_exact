@@ -2,17 +2,17 @@
 
 /* Paleta de Cores unificada */
 :root {
-    --color-primary: #122744; /* Azul escuro para título e botões principais */
-    --color-primary-light: #00366D; /* Tom mais claro para hover */
-    --color-accent: #F77626; /* Laranja para botões secundários */
-    --color-danger: #DC3545; /* Vermelho para ações perigosas */
+    --color-primary: #122744;
+    --color-primary-light: #00366D;
+    --color-accent: #F77626;
+    --color-danger: #DC3545;
     --color-danger-dark: #C82333;
-    --color-secondary-button: #6C757D; /* Cinza para botões secundários */
+    --color-secondary-button: #6C757D;
     --color-secondary-button-dark: #5A6268;
     --color-background: #f4f4f9;
     --color-text: #333;
     --border-radius-base: 8px;
-    --color-copy-button: #42C4C4; /* Azul ciano para os botões de copiar */
+    --color-copy-button: #42C4C4;
 }
 
 body {
@@ -58,7 +58,7 @@ select {
     font-family: monospace;
 }
 
-/* Estilos para o GIF de Sucesso */
+/* Estilos para o GIF de Sucesso e Copiar - Mesma classe para o overlay */
 .gif-overlay {
     position: fixed;
     top: 0;
@@ -81,11 +81,17 @@ select {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.gif-content img {
+/* Estilos de Imagem específicos para cada GIF */
+#successGif .gif-content img {
     max-width: 300px;
     height: auto;
     border-radius: 4px;
     margin-bottom: 10px;
+}
+
+#copyGif .gif-content img {
+    max-width: 450px; /* Tamanho maior para a imagem de copiar */
+    height: auto;
 }
 
 .gif-content p {
@@ -187,7 +193,7 @@ button[type="submit"]:hover {
 .url-buttons {
     display: flex;
     gap: 10px;
-    justify-content: flex-start; /* **AQUI ESTÁ A MUDANÇA** */
+    justify-content: flex-start;
     margin-top: 10px;
 }
 
