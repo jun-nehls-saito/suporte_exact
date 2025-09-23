@@ -20,11 +20,12 @@ if (sessionStorage.getItem('acessoLiberado') === 'true') {
 
     while (senhaUsuario !== senhaCorreta) {
         if (senhaUsuario === null) { // Usuário clicou em 'cancelar'
-            // Opcionalmente, pode-se redirecionar ou mostrar uma mensagem
-            alert("Acesso negado.");
+            // AQUI ESTÁ A MUDANÇA: mensagem para 'cancelar'
+            alert("Ahhhh que peninha, não deu pra entrar... Bye bye!");
             break; // Sai do loop para não pedir a senha infinitamente
         }
-        senhaUsuario = prompt("Senha incorreta. Tente novamente:");
+        // AQUI ESTÁ A MUDANÇA: mensagem para senha errada
+        senhaUsuario = prompt("OW, vc errou, se pah nem era pra vc estar aqui... VAZA!");
     }
 
     if (senhaUsuario === senhaCorreta) {
