@@ -103,7 +103,7 @@ function loadHistory() {
         const historyArray = JSON.parse(savedHistory);
         
         historyArray.forEach(item => {
-             addUrlBlockToDOM(item.url, item.clientId, item.data, item.hora);
+             addUrlBlockToDOM(item.url, item.clientId, item.data, item.hora, item.duracao, item.chave, item.platform);
         });
     } else {
         historyOutput.innerHTML = '<p>Nenhuma URL gerada ainda.</p>';
@@ -111,15 +111,18 @@ function loadHistory() {
 }
 
 // 4. FUNÇÃO PARA ADICIONAR UM ITEM AO HISTÓRICO SALVO
-function saveHistoryItem(url, clientId, data, hora) {
+function saveHistoryItem(url, clientId, data, hora, duracao, chave, platform) {
     const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
     let historyArray = savedHistory ? JSON.parse(savedHistory) : [];
 
     historyArray.unshift({
         clientId: clientId,
         url: url,
-        data: data, // Salvando a data
-        hora: hora, // Salvando a hora
+        data: data, 
+        hora: hora,
+        duracao: duracao,
+        chave: chave,
+        platform: platform,
         timestamp: new Date().getTime() 
     });
     
@@ -282,15 +285,14 @@ form.addEventListener('submit', function(event) {
 
     const caminhoData = `${ano}/${mes}/${dia}`;
     
-    // AQUI ESTÁ A CORREÇÃO FINAL: Usamos a chave completa como o nome do arquivo, sem prefixos.
     const nomeArquivo = chaveCompleta;
 
     const finalUrl = `${baseURL}${caminhoData}/${clientId}/${nomeArquivo}.wav`;
 
     sessionHistory.push(newEntry);
     
-    saveHistoryItem(finalUrl, clientId, data, hora); 
-    addUrlBlockToDOM(finalUrl, clientId, data, hora);
+    saveHistoryItem(finalUrl, clientId, data, hora, duracao, chaveCompleta, platform); 
+    addUrlBlockToDOM(finalUrl, clientId, data, hora, duracao, chaveCompleta, platform);
 
     successGif.classList.remove('hidden'); 
     
@@ -301,7 +303,7 @@ form.addEventListener('submit', function(event) {
 
 
 // --- FUNÇÃO DE CRIAÇÃO DO BLOCO DE URL ---
-function addUrlBlockToDOM(url, clientId, data, hora) {
+function addUrlBlockToDOM(url, clientId, data, hora, duracao, chave, platform) {
     
     Array.from(historyOutput.children).forEach(child => {
         if (child.tagName === 'P' && child.textContent.trim() === 'Nenhuma URL gerada ainda.') {
@@ -332,22 +334,38 @@ function addUrlBlockToDOM(url, clientId, data, hora) {
     const urlP = document.createElement('p');
     urlP.className = 'url-copia';
     urlP.textContent = url;
+
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'url-buttons';
     
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copiar';
-    copyBtn.className = 'copy-btn';
+    const urlBtn = document.createElement('button');
+    urlBtn.textContent = 'Copiar URL';
+    urlBtn.className = 'copy-btn';
     
-    copyBtn.addEventListener('click', function() {
-        
-        if (lastCopiedButton && lastCopiedButton !== this) {
-            lastCopiedButton.textContent = 'Copiar';
+    const jsonBtn = document.createElement('button');
+    jsonBtn.textContent = 'Copiar JSON';
+    // O BUG ESTAVA AQUI: ambos os botões agora usam a mesma classe.
+    jsonBtn.className = 'copy-btn';
+
+    // FUNÇÃO REUTILIZÁVEL PARA RESETAR O BOTÃO ANTERIOR
+    function resetLastButton() {
+        if (lastCopiedButton) {
+            // Verifica o texto atual e reseta para o valor original
+            if (lastCopiedButton.textContent === 'URL Copiada!') {
+                lastCopiedButton.textContent = 'Copiar URL';
+            } else if (lastCopiedButton.textContent === 'JSON Copiado!') {
+                lastCopiedButton.textContent = 'Copiar JSON';
+            }
             lastCopiedButton.style.backgroundColor = 'var(--color-copy-button)';
             lastCopiedButton.style.color = 'white'; 
         }
+    }
 
+    urlBtn.addEventListener('click', function() {
+        resetLastButton();
         navigator.clipboard.writeText(url)
             .then(() => {
-                this.textContent = 'Eeeeeita como copia URL';
+                this.textContent = 'URL Copiada!';
                 this.style.backgroundColor = 'var(--color-primary)';
                 this.style.color = 'white';
                 lastCopiedButton = this;
@@ -361,9 +379,43 @@ function addUrlBlockToDOM(url, clientId, data, hora) {
             });
     });
 
+    jsonBtn.addEventListener('click', function() {
+        resetLastButton();
+        
+        const jsonObject = {
+            url: url,
+            clientId: clientId,
+            data: data,
+            hora: hora,
+            duracao: duracao,
+            chave: chave,
+            provedor: platform
+        };
+
+        const jsonString = JSON.stringify(jsonObject, null, 2);
+
+        navigator.clipboard.writeText(jsonString)
+            .then(() => {
+                this.textContent = 'JSON Copiado!';
+                this.style.backgroundColor = 'var(--color-primary)';
+                this.style.color = 'white';
+                lastCopiedButton = this;
+            })
+            .catch(err => {
+                console.error('Erro ao copiar o JSON: ', err);
+                alert('Não foi possível copiar o JSON.');
+                this.textContent = 'Erro ao copiar!';
+                this.style.backgroundColor = 'var(--color-copy-button)';
+                this.style.color = 'var(--color-primary)';
+            });
+    });
+
+    buttonsDiv.appendChild(urlBtn);
+    buttonsDiv.appendChild(jsonBtn);
+    
     block.appendChild(metadataDiv);
     block.appendChild(urlP);
-    block.appendChild(copyBtn);
+    block.appendChild(buttonsDiv);
     
     historyOutput.prepend(block);
 }

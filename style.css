@@ -1,19 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
-/* RD Station - Estilo inspirado */
+/* Paleta de Cores unificada */
 :root {
-    --color-primary: #122744;
-    --color-primary-light: #00366D;
-    --color-accent: #F77626;
-    --color-danger: #DC3545;
+    --color-primary: #122744; /* Azul escuro para título e botões principais */
+    --color-primary-light: #00366D; /* Tom mais claro para hover */
+    --color-accent: #F77626; /* Laranja para botões secundários */
+    --color-danger: #DC3545; /* Vermelho para ações perigosas */
     --color-danger-dark: #C82333;
-    --color-secondary-button: #6C757D;
+    --color-secondary-button: #6C757D; /* Cinza para botões secundários */
     --color-secondary-button-dark: #5A6268;
     --color-background: #f4f4f9;
     --color-text: #333;
     --border-radius-base: 8px;
-    /* NOVA VARIÁVEL: cor do botão de copiar */
-    --color-copy-button: #42C4C4;
+    --color-copy-button: #42C4C4; /* Azul ciano para os botões de copiar */
 }
 
 body {
@@ -35,7 +34,7 @@ body {
 }
 
 h1 {
-    color: #007bff;
+    color: var(--color-primary);
     text-align: center;
 }
 
@@ -96,21 +95,19 @@ select {
     margin: 0;
 }
 
-/* NOVO ESTILO: Garante que a classe 'hidden' esconda o elemento */
 .hidden {
     display: none !important;
 }
 
-/* Estilos dos botões no formulário */
+/* Centraliza os botões de "Gerar" e "Limpar" */
 .form-actions {
     display: flex;
     gap: 10px;
+    justify-content: center;
     margin-top: 15px;
     margin-bottom: 15px;
-    justify-content: center;
 }
 
-/* Definimos um estilo padrão para todos os botões */
 button {
     color: white;
     padding: 10px 15px;
@@ -139,22 +136,18 @@ button[type="submit"]:hover {
     background-color: var(--color-secondary-button-dark);
 }
 
-/* Estilos da área de Resultados/Histórico */
 .resultado {
     margin-top: 0; 
     padding: 15px;
     border-top: 1px solid #eee;
 }
 
-/* Estilo do título de URLs Geradas */
 .resultado h2 {
     color: var(--color-primary); 
     text-align: center;
     margin-top: 0;
 }
 
-
-/* Estilos para o bloco de URL */
 .url-block {
     border: 1px solid #ddd;
     padding: 10px;
@@ -169,7 +162,6 @@ button[type="submit"]:hover {
     gap: 5px;
 }
 
-/* Estilo para o SPAN com o ID do Cliente (Legenda) no histórico */
 .id-label {
     font-weight: bold;
     color: var(--color-primary);
@@ -178,7 +170,6 @@ button[type="submit"]:hover {
     font-size: 1.1em;
 }
 
-/* Estilo para o SPAN com a data e hora */
 .datetime-label {
     font-size: 0.7em;
     color: var(--color-secondary-button);
@@ -192,14 +183,19 @@ button[type="submit"]:hover {
     font-size: 0.9em;
 }
 
-/* Estilo do botão de copiar dentro do bloco */
+/* Alinha os botões de copiar para a esquerda */
+.url-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start; /* **AQUI ESTÁ A MUDANÇA** */
+    margin-top: 10px;
+}
+
 .copy-btn {
     background-color: var(--color-copy-button);
-    margin-top: 5px;
     padding: 5px 10px;
     font-size: 0.9em;
     width: auto;
-    /* AQUI ESTÁ A MUDANÇA: cor da fonte branca */
     color: white; 
     font-weight: 500;
 }
@@ -209,13 +205,12 @@ button[type="submit"]:hover {
     color: white;
 }
 
-/* Classes para os botões de limpeza */
 .clear-urls-button {
     background-color: var(--color-accent);
 }
 
 .clear-urls-button:hover {
-    background-color: #d1641f; /* Tom mais escuro do laranja */
+    background-color: #d1641f;
 }
 
 .clear-all-button {
