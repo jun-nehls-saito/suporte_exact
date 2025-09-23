@@ -356,13 +356,10 @@ function addUrlBlockToDOM(url, clientId, data, hora) {
     
     copyBtn.addEventListener('click', function() {
         
-        // Se houver um último botão copiado e ele não for o botão atual...
         if (lastCopiedButton && lastCopiedButton !== this) {
-            // ... reseta o texto e a cor de fundo dele para o padrão
             lastCopiedButton.textContent = 'Copiar';
             lastCopiedButton.style.backgroundColor = 'var(--color-copy-button)';
-            // AQUI ESTÁ A CORREÇÃO: a fonte volta a ser BRANCA
-            lastCopiedButton.style.color = 'white'; 
+            lastCopiedButton.style.color = 'var(--color-primary)';
         }
 
         navigator.clipboard.writeText(url)

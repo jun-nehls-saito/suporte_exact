@@ -224,4 +224,230 @@ button[type="submit"]:hover {
 
 .clear-all-button:hover {
     background-color: var(--color-danger-dark);
+}@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+/* RD Station - Estilo inspirado */
+:root {
+    --color-primary: #122744;
+    --color-primary-light: #00366D;
+    --color-accent: #F77626;
+    --color-danger: #DC3545;
+    --color-danger-dark: #C82333;
+    --color-secondary-button: #6C757D;
+    --color-secondary-button-dark: #5A6268;
+    --color-background: #f4f4f9;
+    --color-text: #333;
+    --border-radius-base: 8px;
+    /* NOVA VARIÁVEL: cor do botão de copiar */
+    --color-copy-button: #42C4C4;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 900px;
+}
+
+h1 {
+    color: #007bff;
+    text-align: center;
+}
+
+label {
+    display: block;
+    margin: 15px 0 5px;
+    font-weight: bold;
+}
+
+input[type="text"], 
+input[type="date"], 
+input[type="time"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius-base);
+    box-sizing: border-box;
+    font-family: monospace;
+}
+
+/* Estilos para o GIF de Sucesso */
+.gif-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.gif-content {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.gif-content img {
+    max-width: 300px;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.gif-content p {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.5em;
+    margin: 0;
+}
+
+/* NOVO ESTILO: Garante que a classe 'hidden' esconda o elemento */
+.hidden {
+    display: none !important;
+}
+
+/* Estilos dos botões no formulário */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+/* Definimos um estilo padrão para todos os botões */
+button {
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: var(--border-radius-base);
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 200px;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"] {
+    background-color: var(--color-primary);
+}
+
+button[type="submit"]:hover {
+    background-color: var(--color-primary-light);
+}
+
+.secondary-button {
+    background-color: var(--color-secondary-button); 
+}
+
+.secondary-button:hover {
+    background-color: var(--color-secondary-button-dark);
+}
+
+/* Estilos da área de Resultados/Histórico */
+.resultado {
+    margin-top: 0; 
+    padding: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Estilo do título de URLs Geradas */
+.resultado h2 {
+    color: var(--color-primary); 
+    text-align: center;
+    margin-top: 0;
+}
+
+
+/* Estilos para o bloco de URL */
+.url-block {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: var(--border-radius-base);
+    background-color: #f9f9f9;
+}
+
+.metadata-block {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+/* Estilo para o SPAN com o ID do Cliente (Legenda) no histórico */
+.id-label {
+    font-weight: bold;
+    color: var(--color-primary);
+    margin: 0;
+    padding: 0;
+    font-size: 1.1em;
+}
+
+/* Estilo para o SPAN com a data e hora */
+.datetime-label {
+    font-size: 0.7em;
+    color: var(--color-secondary-button);
+    font-weight: normal;
+}
+
+.url-copia {
+    padding: 5px;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Estilo do botão de copiar dentro do bloco */
+.copy-btn {
+    background-color: var(--color-copy-button);
+    margin-top: 5px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    width: auto;
+    /* AQUI ESTÁ A MUDANÇA: cor da fonte branca */
+    color: white; 
+    font-weight: 500;
+}
+
+.copy-btn:hover {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Classes para os botões de limpeza */
+.clear-urls-button {
+    background-color: var(--color-accent);
+}
+
+.clear-urls-button:hover {
+    background-color: #d1641f; /* Tom mais escuro do laranja */
+}
+
+.clear-all-button {
+    background-color: var(--color-danger);
+}
+
+.clear-all-button:hover {
+    background-color: var(--color-danger-dark);
 }
