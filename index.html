@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de URL de Ligação</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="successGif" class="gif-overlay hidden">
+        <div class="gif-content">
+            <img src="https://c.tenor.com/iCqG_iT-h48AAAAd/tenor.gif" alt="Sucesso!">
+            <p>UHUL! URL Criada com Sucesso!</p>
+        </div>
+    </div>
+    
+    <div class="container hidden" id="mainContainer">
+        <h1>Gerador de URL de Chamadas</h1>
+        <p>Preencha os campos abaixo para gerar a URL formatada.</p>
+        
+        <form id="urlForm" novalidate>
+            <label for="clientId">ID do Cliente</label>
+            <input type="number" id="clientId" name="clientId" required maxlength="5" pattern="\d{5}" title="O ID do Cliente deve ter exatamente 5 dígitos numéricos.">
+
+            <label for="chave">Chave</label>
+            <input type="text" id="chave" name="chave" required>
+            
+            <label for="data">Data da Ligação</label>
+            <input type="date" id="data" name="data" required>
+
+            <label for="hora">Hora da Ligação</label>
+            <input type="time" id="hora" name="hora" required>
+
+            <label for="duracao">Duração (segundos)</label>
+            <input type="number" id="duracao" name="duracao" required min="1">
+            
+            <label for="platform">Provedor</label>
+            <select id="platform" name="platform" required>
+                <option value="" disabled selected>Qual o provedor?</option>
+                <option value="vip">VIP</option>
+                <option value="gosat">Gosat</option>
+            </select>
+            
+            <div class="form-actions">
+                <button type="submit">Gerar URL</button>
+                <button type="button" id="clearButton" class="secondary-button">Limpar Campos</button>
+            </div>
+        </form>
+
+        <div class="resultado">
+            <h2>URLs Geradas:</h2>
+            <div class="form-actions">
+                <button type="button" id="clearHistoryButton" class="clear-urls-button">Limpar URLs</button>
+                <button type="button" id="clearAllButton" class="clear-all-button">Limpar a porra toda</button>
+            </div>
+
+            <div id="historyOutput">
+                <p>Nenhuma URL gerada ainda...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
