@@ -72,6 +72,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // Chamar a função para preencher a data ao carregar a página
     setDateToday();
 
+    // -------------------------------------------------------------------------
+    // NOVO: Função para gerar o JSON body formatado (reusável)
+    // -------------------------------------------------------------------------
+    function generateJsonBody(chamada) {
+        // Formatação da data e hora
+        const dtInicio = new Date(`${chamada.data}T${chamada.hora}`);
+        dtInicio.setSeconds(0); // Garante que os segundos sejam 00
+        
+        // Cálculo da data e hora de fim
+        const dtFim = new Date(dtInicio.getTime() + parseInt(chamada.duracao) * 1000);
+        
+        // Formata o JSON
+        return {
+            "LeadId": parseInt(chamada.leadId),
+            "UrlLigacao": chamada.url,
+            "OrigemTel": chamada.origem,
+            "DestinoTel": chamada.destino,
+            "DtInicioChamada": dtInicio.toISOString().replace('T', ' ').substring(0, 19),
+            "DtFimChamada": dtFim.toISOString().replace('T', ' ').substring(0, 19),
+            "TempoConversacao": parseInt(chamada.duracao)
+        };
+    }
+    
+    // -------------------------------------------------------------------------
+    // NOVO: Função para atualizar a duração de uma chamada no histórico
+    // -------------------------------------------------------------------------
+    function updateJsonDuration(id) {
+        let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
+        // Usamos == para comparação flexível se o ID for number no objeto e string no dataset
+        const callIndex = chamadas.findIndex(c => c.id == id); 
+
+        if (callIndex !== -1) {
+            // Pega o valor atual do campo Duração no formulário
+            const newDuration = document.getElementById('duracao').value;
+
+            // Atualiza o objeto no histórico com a nova duração
+            chamadas[callIndex].duracao = newDuration;
+
+            // Salva o histórico atualizado
+            localStorage.setItem('chamadas', JSON.stringify(chamadas));
+            
+            return true;
+        }
+        return false;
+    }
+
+
     form.addEventListener('submit', (event) => {
         // Pega todos os valores do formulário
         const clientId = document.getElementById('clientId').value;
@@ -160,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const urlBlock = document.createElement('div');
             urlBlock.className = 'url-block';
             
+            // ADICIONADO O NOVO BOTÃO AQUI
             urlBlock.innerHTML = `
                 <div class="metadata-block">
                     <span class="id-label">${chamada.clientId}</span>
@@ -169,14 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="url-buttons">
                     <button class="copy-btn copy-url" data-url="${chamada.url}">Copiar URL</button>
                     <button class="copy-btn copy-json" data-id="${chamada.id}">Copiar JSON</button>
+                    <button class="update-json-btn" data-id="${chamada.id}">Atualizar JSON</button>
                 </div>
             `;
             historyOutput.appendChild(urlBlock);
         });
     }
 
-    // Lida com os botões de copiar URL e JSON
+    // Lida com os botões de copiar URL e JSON E AGORA ATUALIZAR JSON
     historyOutput.addEventListener('click', (event) => {
+        // Lógica do Copiar URL (Mantida)
         if (event.target.classList.contains('copy-url')) {
             const url = event.target.dataset.url;
             navigator.clipboard.writeText(url)
@@ -196,29 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         }
         
+        // Lógica do Copiar JSON (Modificada para usar a nova função generateJsonBody)
         if (event.target.classList.contains('copy-json')) {
             const id = event.target.dataset.id;
             let chamadas = JSON.parse(localStorage.getItem('chamadas') || '[]');
             const chamada = chamadas.find(item => item.id == id);
             
             if (chamada) {
-                // Formatação da data e hora
-                const dtInicio = new Date(`${chamada.data}T${chamada.hora}`);
-                dtInicio.setSeconds(0); // Garante que os segundos sejam 00
-                
-                // Cálculo da data e hora de fim
-                const dtFim = new Date(dtInicio.getTime() + parseInt(chamada.duracao) * 1000);
-                
-                // Formata o JSON
-                const jsonContent = {
-                    "LeadId": parseInt(chamada.leadId),
-                    "UrlLigacao": chamada.url,
-                    "OrigemTel": chamada.origem,
-                    "DestinoTel": chamada.destino,
-                    "DtInicioChamada": dtInicio.toISOString().replace('T', ' ').substring(0, 19),
-                    "DtFimChamada": dtFim.toISOString().replace('T', ' ').substring(0, 19),
-                    "TempoConversacao": parseInt(chamada.duracao)
-                };
+                // USA A NOVA FUNÇÃO REUSÁVEL
+                const jsonContent = generateJsonBody(chamada); 
 
                 navigator.clipboard.writeText(JSON.stringify(jsonContent, null, 2))
                     .then(() => {
@@ -237,6 +273,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
             }
         }
+        
+        // NOVO LISTENER: ATUALIZAR JSON
+        if (event.target.classList.contains('update-json-btn')) {
+            const id = event.target.dataset.id;
+            const button = event.target;
+            
+            if (updateJsonDuration(id)) {
+                // Feedback visual: Muda para verde escuro e texto de sucesso
+                button.textContent = 'JSON atualizado!';
+                button.classList.add('feedback-success');
+                
+                setTimeout(() => {
+                    button.textContent = 'Atualizar JSON';
+                    button.classList.remove('feedback-success');
+                }, 1000); 
+            } else {
+                alert('Erro ao atualizar JSON. Item não encontrado.');
+            }
+        }
     });
 
     // Botão para limpar campos do formulário (sem validação)
@@ -248,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botão para limpar histórico com dupla verificação
     clearHistoryButton.addEventListener('click', () => {
+        // Mantida a mensagem original do usuário
         const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
         if (confirm(confirmMessage)) {
             if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {
@@ -259,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botão para limpar tudo com dupla verificação
     clearAllButton.addEventListener('click', () => {
+        // Mantida a mensagem original do usuário
         const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
         if (confirm(confirmMessage)) {
             if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {

@@ -13,6 +13,10 @@
     --color-text: #333;
     --border-radius-base: 8px;
     --color-copy-button: #42C4C4;
+    
+    /* NOVAS CORES ADICIONADAS */
+    --color-update-json: #90ee90; /* Verde Claro */
+    --color-update-json-dark: #3cb371; /* Verde Escuro (para hover e feedback) */
 }
 
 body {
@@ -210,6 +214,26 @@ button[type="submit"]:hover {
     background-color: var(--color-primary);
     color: white;
 }
+
+/* NOVO BOTÃO: ATUALIZAR JSON */
+.update-json-btn {
+    background-color: var(--color-update-json); 
+    color: white; 
+    padding: 5px 10px;
+    font-size: 0.9em;
+    width: auto; /* Mantém a largura automática para alinhamento */
+    font-weight: 500;
+}
+
+.update-json-btn:hover {
+    background-color: var(--color-update-json-dark);
+}
+
+/* Feedback Visual: Verde Escuro */
+.update-json-btn.feedback-success {
+    background-color: var(--color-update-json-dark); 
+}
+
 
 .clear-urls-button {
     background-color: var(--color-accent);
