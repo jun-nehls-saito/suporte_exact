@@ -73,24 +73,33 @@ document.addEventListener('DOMContentLoaded', () => {
     setDateToday();
 
     // -------------------------------------------------------------------------
-    // NOVO: Função para gerar o JSON body formatado (reusável)
+    // Corrigido: Função para gerar o JSON body formatado (reusável)
     // -------------------------------------------------------------------------
     function generateJsonBody(chamada) {
-        // Formatação da data e hora
-        const dtInicio = new Date(`${chamada.data}T${chamada.hora}`);
-        dtInicio.setSeconds(0); // Garante que os segundos sejam 00
+        // CORRIGIDO: Agora o timestamp é criado usando as strings do formulário para evitar o fuso horário
+        const dtInicioStr = `${chamada.data} ${chamada.hora}:00`;
         
-        // Cálculo da data e hora de fim
-        const dtFim = new Date(dtInicio.getTime() + parseInt(chamada.duracao) * 1000);
-        
+        // CORRIGIDO: Cria uma data e adiciona a duração para um cálculo preciso, depois formata a string manualmente
+        const dtInicioObj = new Date(`${chamada.data}T${chamada.hora}:00`);
+        const dtFimObj = new Date(dtInicioObj.getTime() + parseInt(chamada.duracao) * 1000);
+
+        const yyyy = dtFimObj.getFullYear();
+        const mm = String(dtFimObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dtFimObj.getDate()).padStart(2, '0');
+        const hh = String(dtFimObj.getHours()).padStart(2, '0');
+        const min = String(dtFimObj.getMinutes()).padStart(2, '0');
+        const ss = String(dtFimObj.getSeconds()).padStart(2, '0');
+
+        const dtFimStr = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+
         // Formata o JSON
         return {
             "LeadId": parseInt(chamada.leadId),
             "UrlLigacao": chamada.url,
             "OrigemTel": chamada.origem,
             "DestinoTel": chamada.destino,
-            "DtInicioChamada": dtInicio.toISOString().replace('T', ' ').substring(0, 19),
-            "DtFimChamada": dtFim.toISOString().replace('T', ' ').substring(0, 19),
+            "DtInicioChamada": dtInicioStr,
+            "DtFimChamada": dtFimStr,
             "TempoConversacao": parseInt(chamada.duracao)
         };
     }
@@ -281,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (updateJsonDuration(id)) {
                 // Feedback visual: Muda para verde escuro e texto de sucesso
-                button.textContent = 'JSON atualizado!';
+                button.textContent = 'Sucesso!';
                 button.classList.add('feedback-success');
                 
                 setTimeout(() => {
@@ -304,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botão para limpar histórico com dupla verificação
     clearHistoryButton.addEventListener('click', () => {
         // Mantida a mensagem original do usuário
-        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
+        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
         if (confirm(confirmMessage)) {
             if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {
                 localStorage.removeItem('chamadas');
@@ -316,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botão para limpar tudo com dupla verificação
     clearAllButton.addEventListener('click', () => {
         // Mantida a mensagem original do usuário
-        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
+        const confirmMessage = 'ATENÇÃO!!!!!!!!!!!!!!!!!!!!!!!!!!\n\nObg pela atenção!\\nBrinks, presta atenção, se vc limpar tudo vai perder a porra toda ein, confirma se vc já copiou o que precisa, se não vai ter que preencher tudo de novo e de novo e de novo e de novo.';
         if (confirm(confirmMessage)) {
             if (confirm('VOCÊ TEM CERTEZA?????!!!!!!')) {
                 form.reset();
